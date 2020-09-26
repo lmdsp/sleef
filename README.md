@@ -1,6 +1,6 @@
 # SLEEF inline headers
 
-Inline headers generated from [](https://github.com/shibatch/sleef)
+Inline headers generated from [sleef](https://github.com/shibatch/sleef) source using `BUILD_INLINE_HEADERS` option.
 
 [![Build Status](https://travis-ci.org/shibatch/sleef.svg?branch=master)](https://travis-ci.org/shibatch/sleef)
 

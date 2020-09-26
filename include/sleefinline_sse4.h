@@ -1106,7 +1106,7 @@ typedef struct {
 
 typedef vmask2_sse4_sleef vargquad;
 
-static SLEEF_ALWAYS_INLINE void vprefetch_v_p_sse4_sleef(const void *ptr) { _mm_prefetch(ptr, _MM_HINT_T0); }
+static SLEEF_ALWAYS_INLINE void vprefetch_v_p_sse4_sleef(const char *ptr) { _mm_prefetch(ptr, _MM_HINT_T0); }
 
 static SLEEF_ALWAYS_INLINE int vtestallones_i_vo32_sse4_sleef(vopmask_sse4_sleef g) { return _mm_movemask_epi8(g) == 0xFFFF; }
 static SLEEF_ALWAYS_INLINE int vtestallones_i_vo64_sse4_sleef(vopmask_sse4_sleef g) { return _mm_movemask_epi8(g) == 0xFFFF; }
@@ -1349,10 +1349,10 @@ static SLEEF_ALWAYS_INLINE float vcast_f_vf_sse4_sleef(vfloat_sse4_sleef v) {
   return a[0];
 }
 
-static SLEEF_ALWAYS_INLINE vdouble_sse4_sleef vposneg_vd_vd_sse4_sleef(vdouble_sse4_sleef d) { return vreinterpret_vd_vm_sse4_sleef(vxor_vm_vm_vm_sse4_sleef(vreinterpret_vm_vd_sse4_sleef(d), vreinterpret_vm_vd_sse4_sleef(((vdouble_sse4_sleef) { +0.0, -0.0 })))); }
-static SLEEF_ALWAYS_INLINE vdouble_sse4_sleef vnegpos_vd_vd_sse4_sleef(vdouble_sse4_sleef d) { return vreinterpret_vd_vm_sse4_sleef(vxor_vm_vm_vm_sse4_sleef(vreinterpret_vm_vd_sse4_sleef(d), vreinterpret_vm_vd_sse4_sleef(((vdouble_sse4_sleef) { -0.0, +0.0 })))); }
-static SLEEF_ALWAYS_INLINE vfloat_sse4_sleef vposneg_vf_vf_sse4_sleef(vfloat_sse4_sleef d) { return vreinterpret_vf_vm_sse4_sleef(vxor_vm_vm_vm_sse4_sleef(vreinterpret_vm_vf_sse4_sleef(d), vreinterpret_vm_vf_sse4_sleef(((vfloat_sse4_sleef) { +0.0f, -0.0f, +0.0f, -0.0f })))); }
-static SLEEF_ALWAYS_INLINE vfloat_sse4_sleef vnegpos_vf_vf_sse4_sleef(vfloat_sse4_sleef d) { return vreinterpret_vf_vm_sse4_sleef(vxor_vm_vm_vm_sse4_sleef(vreinterpret_vm_vf_sse4_sleef(d), vreinterpret_vm_vf_sse4_sleef(((vfloat_sse4_sleef) { -0.0f, +0.0f, -0.0f, +0.0f })))); }
+static SLEEF_ALWAYS_INLINE vdouble_sse4_sleef vposneg_vd_vd_sse4_sleef(vdouble_sse4_sleef d) { return vreinterpret_vd_vm_sse4_sleef(vxor_vm_vm_vm_sse4_sleef(vreinterpret_vm_vd_sse4_sleef(d), vreinterpret_vm_vd_sse4_sleef((vdouble_sse4_sleef { +0.0, -0.0 })))); }
+static SLEEF_ALWAYS_INLINE vdouble_sse4_sleef vnegpos_vd_vd_sse4_sleef(vdouble_sse4_sleef d) { return vreinterpret_vd_vm_sse4_sleef(vxor_vm_vm_vm_sse4_sleef(vreinterpret_vm_vd_sse4_sleef(d), vreinterpret_vm_vd_sse4_sleef((vdouble_sse4_sleef { -0.0, +0.0 })))); }
+static SLEEF_ALWAYS_INLINE vfloat_sse4_sleef vposneg_vf_vf_sse4_sleef(vfloat_sse4_sleef d) { return vreinterpret_vf_vm_sse4_sleef(vxor_vm_vm_vm_sse4_sleef(vreinterpret_vm_vf_sse4_sleef(d), vreinterpret_vm_vf_sse4_sleef((vfloat_sse4_sleef { +0.0f, -0.0f, +0.0f, -0.0f })))); }
+static SLEEF_ALWAYS_INLINE vfloat_sse4_sleef vnegpos_vf_vf_sse4_sleef(vfloat_sse4_sleef d) { return vreinterpret_vf_vm_sse4_sleef(vxor_vm_vm_vm_sse4_sleef(vreinterpret_vm_vf_sse4_sleef(d), vreinterpret_vm_vf_sse4_sleef((vfloat_sse4_sleef { -0.0f, +0.0f, -0.0f, +0.0f })))); }
 
 static SLEEF_ALWAYS_INLINE vdouble_sse4_sleef vsubadd_vd_vd_vd_sse4_sleef(vdouble_sse4_sleef x, vdouble_sse4_sleef y) { return _mm_addsub_pd(x, y); }
 static SLEEF_ALWAYS_INLINE vfloat_sse4_sleef vsubadd_vf_vf_vf_sse4_sleef(vfloat_sse4_sleef x, vfloat_sse4_sleef y) { return _mm_addsub_ps(x, y); }
