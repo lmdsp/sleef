@@ -1,0 +1,5 @@
+include/sleef.h
+include/sleefinline_avx*.h
+include/sleefinline_cuda.h
+include/sleefinline_fma4.h
+include/sleefinline_purecfma_scalar.h
