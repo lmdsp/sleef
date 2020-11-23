@@ -1100,6 +1100,9 @@ typedef __m128i vint_sse4_sleef;
 typedef __m128  vfloat_sse4_sleef;
 typedef __m128i vint2_sse4_sleef;
 
+typedef __m128i vint64;
+typedef __m128i vuint64;
+
 typedef struct {
   vmask_sse4_sleef x, y;
 } vmask2_sse4_sleef;
@@ -1413,6 +1416,11 @@ static SLEEF_ALWAYS_INLINE vmask_sse4_sleef vcast_vm_vi_sse4_sleef(vint_sse4_sle
   return vor_vm_vm_vm_sse4_sleef(vcastu_vi2_vi_sse4_sleef(vgt_vo_vi_vi_sse4_sleef(vcast_vi_i_sse4_sleef(0), vi)), m);
 }
 static SLEEF_ALWAYS_INLINE vint_sse4_sleef vcast_vi_vm_sse4_sleef(vmask_sse4_sleef vm) { return _mm_shuffle_epi32(vm, 0x08); }
+
+static SLEEF_ALWAYS_INLINE vmask_sse4_sleef vreinterpret_vm_vi64(vint64 v) { return v; }
+static SLEEF_ALWAYS_INLINE vint64 vreinterpret_vi64_vm(vmask_sse4_sleef m) { return m; }
+static SLEEF_ALWAYS_INLINE vmask_sse4_sleef vreinterpret_vm_vu64(vuint64 v) { return v; }
+static SLEEF_ALWAYS_INLINE vuint64 vreinterpret_vu64_vm(vmask_sse4_sleef m) { return m; }
 
 typedef struct {
   vdouble_sse4_sleef x, y;

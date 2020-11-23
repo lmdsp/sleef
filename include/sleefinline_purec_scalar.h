@@ -1107,6 +1107,9 @@ typedef int32_t vint_purec_scalar_sleef;
 typedef float vfloat_purec_scalar_sleef;
 typedef int64_t vint2_purec_scalar_sleef;
 
+typedef int64_t vint64;
+typedef uint64_t vuint64;
+
 typedef struct {
   vmask_purec_scalar_sleef x, y;
 } vmask2_purec_scalar_sleef;
@@ -1364,6 +1367,11 @@ static SLEEF_ALWAYS_INLINE vopmask_purec_scalar_sleef vgt64_vo_vm_vm_purec_scala
 
 static SLEEF_ALWAYS_INLINE vmask_purec_scalar_sleef vcast_vm_vi_purec_scalar_sleef(vint_purec_scalar_sleef vi) { return vi; }
 static SLEEF_ALWAYS_INLINE vint_purec_scalar_sleef vcast_vi_vm_purec_scalar_sleef(vmask_purec_scalar_sleef vm) { return vm; }
+
+static SLEEF_ALWAYS_INLINE vmask_purec_scalar_sleef vreinterpret_vm_vi64(vint64 v) { return v; }
+static SLEEF_ALWAYS_INLINE vint64 vreinterpret_vi64_vm(vmask_purec_scalar_sleef m) { return m; }
+static SLEEF_ALWAYS_INLINE vmask_purec_scalar_sleef vreinterpret_vm_vu64(vuint64 v) { return v; }
+static SLEEF_ALWAYS_INLINE vuint64 vreinterpret_vu64_vm(vmask_purec_scalar_sleef m) { return m; }
 
 typedef struct {
   vdouble_purec_scalar_sleef x, y;
