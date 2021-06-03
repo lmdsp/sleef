@@ -20,6 +20,8 @@
 #pragma fp_contract (off)
 #endif
 
+#pragma STDC FP_CONTRACT OFF
+
 #ifndef SLEEF_FP_ILOGB0
 #define SLEEF_FP_ILOGB0 ((int)0x80000000)
 #endif
@@ -27,6 +29,8 @@
 #ifndef SLEEF_FP_ILOGBNAN
 #define SLEEF_FP_ILOGBNAN ((int)2147483647)
 #endif
+
+#define SLEEFINLINE_PUREC_SCALAR_H_INCLUDED
 
 #ifndef __SLEEF_REMPITAB__
 #define __SLEEF_REMPITAB__
@@ -1138,7 +1142,7 @@ typedef uint32_t vopmask_purec_scalar_sleef;
 typedef double vdouble_purec_scalar_sleef;
 typedef int32_t vint_purec_scalar_sleef;
 typedef float vfloat_purec_scalar_sleef;
-typedef int64_t vint2_purec_scalar_sleef;
+typedef int32_t vint2_purec_scalar_sleef;
 
 typedef int64_t vint64_purec_scalar_sleef;
 typedef uint64_t vuint64_purec_scalar_sleef;
@@ -1166,10 +1170,8 @@ static SLEEF_ALWAYS_INLINE vmask_purec_scalar_sleef vcast_vm_i_i_purec_scalar_sl
 static SLEEF_ALWAYS_INLINE vmask_purec_scalar_sleef vcast_vm_i64_purec_scalar_sleef(int64_t i) { return (int64_t)i; }
 static SLEEF_ALWAYS_INLINE vmask_purec_scalar_sleef vcast_vm_u64_purec_scalar_sleef(uint64_t i) { return i; }
 
-static SLEEF_ALWAYS_INLINE vint2_purec_scalar_sleef vcastu_vi2_vi_purec_scalar_sleef(vint_purec_scalar_sleef vi) { return ((int64_t)vi) << 32; }
-static SLEEF_ALWAYS_INLINE vint_purec_scalar_sleef vcastu_vi_vi2_purec_scalar_sleef(vint2_purec_scalar_sleef vi2) { return vi2 >> 32; }
-
-static SLEEF_ALWAYS_INLINE vint2_purec_scalar_sleef vrev21_vi2_vi2_purec_scalar_sleef(vint2_purec_scalar_sleef vi2) { return (((uint64_t)vi2) << 32) | (((uint64_t)vi2) >> 32); }
+static SLEEF_ALWAYS_INLINE vmask_purec_scalar_sleef vcastu_vm_vi_purec_scalar_sleef(vint_purec_scalar_sleef vi) { return ((uint64_t)vi) << 32; }
+static SLEEF_ALWAYS_INLINE vint_purec_scalar_sleef vcastu_vi_vm_purec_scalar_sleef(vmask_purec_scalar_sleef vm) { return (int32_t)(vm >> 32); }
 
 static SLEEF_ALWAYS_INLINE vdouble_purec_scalar_sleef vcast_vd_d_purec_scalar_sleef(double d) { return d; }
 
@@ -1220,8 +1222,6 @@ static SLEEF_ALWAYS_INLINE vopmask_purec_scalar_sleef veq64_vo_vm_vm_purec_scala
 static SLEEF_ALWAYS_INLINE vmask_purec_scalar_sleef vadd64_vm_vm_vm_purec_scalar_sleef(vmask_purec_scalar_sleef x, vmask_purec_scalar_sleef y) { return x + y; }
 
 static SLEEF_ALWAYS_INLINE vmask_purec_scalar_sleef vreinterpret_vm_vd_purec_scalar_sleef(vdouble_purec_scalar_sleef vd_purec_scalar_sleef) { vmask_purec_scalar_sleef vm; memcpy(&vm, &vd_purec_scalar_sleef, sizeof(vm)); return vm; }
-static SLEEF_ALWAYS_INLINE vint2_purec_scalar_sleef vreinterpret_vi2_vd_purec_scalar_sleef(vdouble_purec_scalar_sleef vd_purec_scalar_sleef) { vint2_purec_scalar_sleef vi2; memcpy(&vi2, &vd_purec_scalar_sleef, sizeof(vi2)); return vi2; }
-static SLEEF_ALWAYS_INLINE vdouble_purec_scalar_sleef vreinterpret_vd_vi2_purec_scalar_sleef(vint2_purec_scalar_sleef vi) { vdouble_purec_scalar_sleef vd_purec_scalar_sleef; memcpy(&vd_purec_scalar_sleef, &vi, sizeof(vd_purec_scalar_sleef)); return vd_purec_scalar_sleef; }
 static SLEEF_ALWAYS_INLINE vdouble_purec_scalar_sleef vreinterpret_vd_vm_purec_scalar_sleef(vmask_purec_scalar_sleef vm) { vdouble_purec_scalar_sleef vd_purec_scalar_sleef; memcpy(&vd_purec_scalar_sleef, &vm, sizeof(vd_purec_scalar_sleef)); return vd_purec_scalar_sleef; }
 
 static SLEEF_ALWAYS_INLINE vdouble_purec_scalar_sleef vadd_vd_vd_vd_purec_scalar_sleef(vdouble_purec_scalar_sleef x, vdouble_purec_scalar_sleef y) { return x + y; }
@@ -1292,8 +1292,8 @@ static SLEEF_ALWAYS_INLINE void vstore_v_p_vd_purec_scalar_sleef(double *ptr, vd
 static SLEEF_ALWAYS_INLINE void vstoreu_v_p_vd_purec_scalar_sleef(double *ptr, vdouble_purec_scalar_sleef v) { *ptr = v; }
 static SLEEF_ALWAYS_INLINE void vstream_v_p_vd_purec_scalar_sleef(double *ptr, vdouble_purec_scalar_sleef v) { *ptr = v; }
 
-static SLEEF_ALWAYS_INLINE vint2_purec_scalar_sleef vcast_vi2_vm_purec_scalar_sleef(vmask_purec_scalar_sleef vm) { vint2_purec_scalar_sleef vi2; memcpy(&vi2, &vm, sizeof(vi2)); return vi2; }
-static SLEEF_ALWAYS_INLINE vmask_purec_scalar_sleef vcast_vm_vi2_purec_scalar_sleef(vint2_purec_scalar_sleef vi) { vmask_purec_scalar_sleef vm; memcpy(&vm, &vi, sizeof(vm)); return vm; }
+static SLEEF_ALWAYS_INLINE vint2_purec_scalar_sleef vcast_vi2_vm_purec_scalar_sleef(vmask_purec_scalar_sleef vm) { return (int32_t)vm; }
+static SLEEF_ALWAYS_INLINE vmask_purec_scalar_sleef vcast_vm_vi2_purec_scalar_sleef(vint2_purec_scalar_sleef vi) { return (uint32_t)vi; }
 
 static SLEEF_ALWAYS_INLINE vfloat_purec_scalar_sleef vcast_vf_vi2_purec_scalar_sleef(vint2_purec_scalar_sleef vi) { return (int32_t)vi; }
 static SLEEF_ALWAYS_INLINE vint2_purec_scalar_sleef vcast_vi2_i_purec_scalar_sleef(int j) { return j; }
@@ -1306,9 +1306,8 @@ static SLEEF_ALWAYS_INLINE vint2_purec_scalar_sleef vtruncate_vi2_vf_purec_scala
 static SLEEF_ALWAYS_INLINE vfloat_purec_scalar_sleef vcast_vf_f_purec_scalar_sleef(float f) { return f; }
 static SLEEF_ALWAYS_INLINE vmask_purec_scalar_sleef vreinterpret_vm_vf_purec_scalar_sleef(vfloat_purec_scalar_sleef f) { vfloat_purec_scalar_sleef vf[2] = { f, 0 }; vmask_purec_scalar_sleef vm; memcpy(&vm, &vf, sizeof(vm)); return vm; }
 static SLEEF_ALWAYS_INLINE vfloat_purec_scalar_sleef vreinterpret_vf_vm_purec_scalar_sleef(vmask_purec_scalar_sleef vm) { vfloat_purec_scalar_sleef vf[2]; memcpy(&vf, &vm, sizeof(vf)); return vf[0]; }
-
-static SLEEF_ALWAYS_INLINE vfloat_purec_scalar_sleef vreinterpret_vf_vi2_purec_scalar_sleef(vint2_purec_scalar_sleef vi) { vfloat_purec_scalar_sleef vf[2]; memcpy(vf, &vi, sizeof(vf)); return vf[0]; }
-static SLEEF_ALWAYS_INLINE vint2_purec_scalar_sleef vreinterpret_vi2_vf_purec_scalar_sleef(vfloat_purec_scalar_sleef f) { vfloat_purec_scalar_sleef vf[2] = { f, 0 }; vint2_purec_scalar_sleef vi2; memcpy(&vi2, vf, sizeof(vi2)); return vi2; }
+static SLEEF_ALWAYS_INLINE vfloat_purec_scalar_sleef vreinterpret_vf_vi2_purec_scalar_sleef(vint2_purec_scalar_sleef vi) { vfloat_purec_scalar_sleef vf; memcpy(&vf, &vi, sizeof(vf)); return vf; }
+static SLEEF_ALWAYS_INLINE vint2_purec_scalar_sleef vreinterpret_vi2_vf_purec_scalar_sleef(vfloat_purec_scalar_sleef f) { vint2_purec_scalar_sleef vi2; memcpy(&vi2, &f, sizeof(vi2)); return vi2; }
 
 static SLEEF_ALWAYS_INLINE vfloat_purec_scalar_sleef vadd_vf_vf_vf_purec_scalar_sleef(vfloat_purec_scalar_sleef x, vfloat_purec_scalar_sleef y) { return x + y; }
 static SLEEF_ALWAYS_INLINE vfloat_purec_scalar_sleef vsub_vf_vf_vf_purec_scalar_sleef(vfloat_purec_scalar_sleef x, vfloat_purec_scalar_sleef y) { return x - y; }
@@ -1339,32 +1338,9 @@ static SLEEF_ALWAYS_INLINE vopmask_purec_scalar_sleef vle_vo_vf_vf_purec_scalar_
 static SLEEF_ALWAYS_INLINE vopmask_purec_scalar_sleef vgt_vo_vf_vf_purec_scalar_sleef(vfloat_purec_scalar_sleef x, vfloat_purec_scalar_sleef y)  { return x >  y ? ~(uint32_t)0 : 0; }
 static SLEEF_ALWAYS_INLINE vopmask_purec_scalar_sleef vge_vo_vf_vf_purec_scalar_sleef(vfloat_purec_scalar_sleef x, vfloat_purec_scalar_sleef y)  { return x >= y ? ~(uint32_t)0 : 0; }
 
-static SLEEF_ALWAYS_INLINE vint2_purec_scalar_sleef vadd_vi2_vi2_vi2_purec_scalar_sleef(vint2_purec_scalar_sleef x, vint2_purec_scalar_sleef y) {
-  int32_t vi[2], wi[2];
-  memcpy(vi, &x, sizeof(vi));
-  memcpy(wi, &y, sizeof(wi));
-  vi[0] += wi[0];
-  vi[1] += wi[1];
-  memcpy(&x, vi, sizeof(x));
-  return x;
-}
-static SLEEF_ALWAYS_INLINE vint2_purec_scalar_sleef vsub_vi2_vi2_vi2_purec_scalar_sleef(vint2_purec_scalar_sleef x, vint2_purec_scalar_sleef y) {
-  int32_t vi[2], wi[2];
-  memcpy(vi, &x, sizeof(vi));
-  memcpy(wi, &y, sizeof(wi));
-  vi[0] -= wi[0];
-  vi[1] -= wi[1];
-  memcpy(&x, vi, sizeof(x));
-  return x;
-}
-static SLEEF_ALWAYS_INLINE vint2_purec_scalar_sleef vneg_vi2_vi2_purec_scalar_sleef(vint2_purec_scalar_sleef x) {
-  int32_t vi[2];
-  memcpy(vi, &x, sizeof(vi));
-  vi[0] = -vi[0];
-  vi[1] = -vi[1];
-  memcpy(&x, vi, sizeof(x));
-  return x;
-}
+static SLEEF_ALWAYS_INLINE vint2_purec_scalar_sleef vadd_vi2_vi2_vi2_purec_scalar_sleef(vint2_purec_scalar_sleef x, vint2_purec_scalar_sleef y) { return x + y; }
+static SLEEF_ALWAYS_INLINE vint2_purec_scalar_sleef vsub_vi2_vi2_vi2_purec_scalar_sleef(vint2_purec_scalar_sleef x, vint2_purec_scalar_sleef y) { return x - y; }
+static SLEEF_ALWAYS_INLINE vint2_purec_scalar_sleef vneg_vi2_vi2_purec_scalar_sleef(vint2_purec_scalar_sleef x) { return -x; }
 
 static SLEEF_ALWAYS_INLINE vint2_purec_scalar_sleef vand_vi2_vi2_vi2_purec_scalar_sleef(vint2_purec_scalar_sleef x, vint2_purec_scalar_sleef y)    { return x & y; }
 static SLEEF_ALWAYS_INLINE vint2_purec_scalar_sleef vandnot_vi2_vi2_vi2_purec_scalar_sleef(vint2_purec_scalar_sleef x, vint2_purec_scalar_sleef y) { return y & ~x; }
@@ -1386,28 +1362,13 @@ static SLEEF_ALWAYS_INLINE vint2_purec_scalar_sleef vand_vi2_vo_vi2_purec_scalar
 static SLEEF_ALWAYS_INLINE vint2_purec_scalar_sleef vandnot_vi2_vo_vi2_purec_scalar_sleef(vopmask_purec_scalar_sleef x, vint2_purec_scalar_sleef y) { return y & ~vcast_vm_vo_purec_scalar_sleef(x); }
 
 static SLEEF_ALWAYS_INLINE vint2_purec_scalar_sleef vsll_vi2_vi2_i_purec_scalar_sleef(vint2_purec_scalar_sleef x, int c) {
-  uint32_t vu[2];
-  memcpy(vu, &x, sizeof(vu));
-  vu[0] <<= c;
-  vu[1] <<= c;
-  memcpy(&x, vu, sizeof(x));
-  return x;
+  return x << c;
 }
 static SLEEF_ALWAYS_INLINE vint2_purec_scalar_sleef vsrl_vi2_vi2_i_purec_scalar_sleef(vint2_purec_scalar_sleef x, int c) {
-  uint32_t vu[2];
-  memcpy(vu, &x, sizeof(vu));
-  vu[0] >>= c;
-  vu[1] >>= c;
-  memcpy(&x, vu, sizeof(x));
-  return x;
+  return ((uint32_t)x) >> c;
 }
 static SLEEF_ALWAYS_INLINE vint2_purec_scalar_sleef vsra_vi2_vi2_i_purec_scalar_sleef(vint2_purec_scalar_sleef x, int c) {
-  int32_t vi[2];
-  memcpy(vi, &x, sizeof(vi));
-  vi[0] >>= c;
-  vi[1] >>= c;
-  memcpy(&x, vi, sizeof(x));
-  return x;
+  return x >> c;
 }
 
 static SLEEF_ALWAYS_INLINE vopmask_purec_scalar_sleef visinf_vo_vf_purec_scalar_sleef (vfloat_purec_scalar_sleef d) { return (d == ((float)(1e+300 * 1e+300)) || d == -((float)(1e+300 * 1e+300))) ? ~(uint32_t)0 : 0; }
@@ -1915,7 +1876,7 @@ static SLEEF_ALWAYS_INLINE SLEEF_CONST  vopmask_purec_scalar_sleef visodd_vo_vd_
 static SLEEF_ALWAYS_INLINE SLEEF_CONST  vint_purec_scalar_sleef vilogbk_vi_vd_purec_scalar_sleef(vdouble_purec_scalar_sleef d) {
   vopmask_purec_scalar_sleef o = vlt_vo_vd_vd_purec_scalar_sleef(d, vcast_vd_d_purec_scalar_sleef(4.9090934652977266E-91));
   d = vsel_vd_vo_vd_vd_purec_scalar_sleef(o, vmul_vd_vd_vd_purec_scalar_sleef(vcast_vd_d_purec_scalar_sleef(2.037035976334486E90), d), d);
-  vint_purec_scalar_sleef q = vcastu_vi_vi2_purec_scalar_sleef(vreinterpret_vi2_vd_purec_scalar_sleef(d));
+  vint_purec_scalar_sleef q = vcastu_vi_vm_purec_scalar_sleef(vreinterpret_vm_vd_purec_scalar_sleef(d));
   q = vand_vi_vi_vi_purec_scalar_sleef(q, vcast_vi_i_purec_scalar_sleef((int)(((1U << 12) - 1) << 20)));
   q = vsrl_vi_vi_i_purec_scalar_sleef(q, 20);
   q = vsub_vi_vi_vi_purec_scalar_sleef(q, vsel_vi_vo_vi_vi_purec_scalar_sleef(vcast_vo32_vo64_purec_scalar_sleef(o), vcast_vi_i_purec_scalar_sleef(300 + 0x3ff), vcast_vi_i_purec_scalar_sleef(0x3ff)));
@@ -1923,7 +1884,7 @@ static SLEEF_ALWAYS_INLINE SLEEF_CONST  vint_purec_scalar_sleef vilogbk_vi_vd_pu
 }
 
 static SLEEF_ALWAYS_INLINE SLEEF_CONST  vint_purec_scalar_sleef vilogb2k_vi_vd_purec_scalar_sleef(vdouble_purec_scalar_sleef d) {
-  vint_purec_scalar_sleef q = vcastu_vi_vi2_purec_scalar_sleef(vreinterpret_vi2_vd_purec_scalar_sleef(d));
+  vint_purec_scalar_sleef q = vcastu_vi_vm_purec_scalar_sleef(vreinterpret_vm_vd_purec_scalar_sleef(d));
   q = vsrl_vi_vi_i_purec_scalar_sleef(q, 20);
   q = vand_vi_vi_vi_purec_scalar_sleef(q, vcast_vi_i_purec_scalar_sleef(0x7ff));
   q = vsub_vi_vi_vi_purec_scalar_sleef(q, vcast_vi_i_purec_scalar_sleef(0x3ff));
@@ -1947,8 +1908,8 @@ static SLEEF_ALWAYS_INLINE SLEEF_CONST vmask_purec_scalar_sleef vilogb3k_vm_vd_p
 
 static SLEEF_ALWAYS_INLINE SLEEF_CONST  vdouble_purec_scalar_sleef vpow2i_vd_vi_purec_scalar_sleef(vint_purec_scalar_sleef q) {
   q = vadd_vi_vi_vi_purec_scalar_sleef(vcast_vi_i_purec_scalar_sleef(0x3ff), q);
-  vint2_purec_scalar_sleef r = vcastu_vi2_vi_purec_scalar_sleef(q);
-  return vreinterpret_vd_vi2_purec_scalar_sleef(vsll_vi2_vi2_i_purec_scalar_sleef(r, 20));
+  vmask_purec_scalar_sleef r = vcastu_vm_vi_purec_scalar_sleef(vsll_vi_vi_i_purec_scalar_sleef(q, 20));
+  return vreinterpret_vd_vm_purec_scalar_sleef(r);
 }
 
 static SLEEF_ALWAYS_INLINE SLEEF_CONST  vdouble_purec_scalar_sleef vpow2i_vd_vm_purec_scalar_sleef(vmask_purec_scalar_sleef q) {
@@ -1963,8 +1924,8 @@ static SLEEF_ALWAYS_INLINE SLEEF_CONST  vdouble_purec_scalar_sleef vldexp_vd_vd_
   m = vadd_vi_vi_vi_purec_scalar_sleef(vcast_vi_i_purec_scalar_sleef(0x3ff), m);
   m = vandnot_vi_vo_vi_purec_scalar_sleef(vgt_vo_vi_vi_purec_scalar_sleef(vcast_vi_i_purec_scalar_sleef(0), m), m);
   m = vsel_vi_vo_vi_vi_purec_scalar_sleef(vgt_vo_vi_vi_purec_scalar_sleef(m, vcast_vi_i_purec_scalar_sleef(0x7ff)), vcast_vi_i_purec_scalar_sleef(0x7ff), m);
-  vint2_purec_scalar_sleef r = vcastu_vi2_vi_purec_scalar_sleef(m);
-  vdouble_purec_scalar_sleef y = vreinterpret_vd_vi2_purec_scalar_sleef(vsll_vi2_vi2_i_purec_scalar_sleef(r, 20));
+  vmask_purec_scalar_sleef r = vcastu_vm_vi_purec_scalar_sleef(vsll_vi_vi_i_purec_scalar_sleef(m, 20));
+  vdouble_purec_scalar_sleef y = vreinterpret_vd_vm_purec_scalar_sleef(r);
   return vmul_vd_vd_vd_purec_scalar_sleef(vmul_vd_vd_vd_purec_scalar_sleef(vmul_vd_vd_vd_purec_scalar_sleef(vmul_vd_vd_vd_purec_scalar_sleef(vmul_vd_vd_vd_purec_scalar_sleef(x, y), y), y), y), vpow2i_vd_vi_purec_scalar_sleef(q));
 }
 
@@ -1973,7 +1934,7 @@ static SLEEF_ALWAYS_INLINE SLEEF_CONST  vdouble_purec_scalar_sleef vldexp2_vd_vd
 }
 
 static SLEEF_ALWAYS_INLINE SLEEF_CONST  vdouble_purec_scalar_sleef vldexp3_vd_vd_vi_purec_scalar_sleef(vdouble_purec_scalar_sleef d, vint_purec_scalar_sleef q) {
-  return vreinterpret_vd_vi2_purec_scalar_sleef(vadd_vi2_vi2_vi2_purec_scalar_sleef(vreinterpret_vi2_vd_purec_scalar_sleef(d), vsll_vi2_vi2_i_purec_scalar_sleef(vcastu_vi2_vi_purec_scalar_sleef(q), 20)));
+  return vreinterpret_vd_vm_purec_scalar_sleef(vadd64_vm_vm_vm_purec_scalar_sleef(vreinterpret_vm_vd_purec_scalar_sleef(d), vcastu_vm_vi_purec_scalar_sleef(vsll_vi_vi_i_purec_scalar_sleef(q, 20))));
 }
 
 static SLEEF_ALWAYS_INLINE SLEEF_CONST vdouble_purec_scalar_sleef vldexp1_vd_vd_vm_purec_scalar_sleef(vdouble_purec_scalar_sleef d, vmask_purec_scalar_sleef e) {
@@ -2840,7 +2801,7 @@ static SLEEF_ALWAYS_INLINE SLEEF_CONST  vdouble2_purec_scalar_sleef atan2k_u1_pu
   t = ddsqu_vd2_vd2_purec_scalar_sleef(s);
   t = ddnormalize_vd2_vd2_purec_scalar_sleef(t);
 
-  vdouble_purec_scalar_sleef t2 = vmul_vd_vd_vd_purec_scalar_sleef(vd2getx_vd_vd2_purec_scalar_sleef(t), vd2getx_vd_vd2_purec_scalar_sleef(t)), t4 = vmul_vd_vd_vd_purec_scalar_sleef(t2, t2), t8 = vmul_vd_vd_vd_purec_scalar_sleef(t4, t4), t16 = vmul_vd_vd_vd_purec_scalar_sleef(t8, t8);
+  vdouble_purec_scalar_sleef t2 = vmul_vd_vd_vd_purec_scalar_sleef(vd2getx_vd_vd2_purec_scalar_sleef(t), vd2getx_vd_vd2_purec_scalar_sleef(t)), t4 = vmul_vd_vd_vd_purec_scalar_sleef(t2, t2), t8 = vmul_vd_vd_vd_purec_scalar_sleef(t4, t4);
   u = vmla_vd_vd_vd_vd_purec_scalar_sleef((t8), (vmla_vd_vd_vd_vd_purec_scalar_sleef((t4), (vmla_vd_vd_vd_vd_purec_scalar_sleef((t2), (vmla_vd_vd_vd_vd_purec_scalar_sleef((vd2getx_vd_vd2_purec_scalar_sleef(t)), (vcast_vd_d_purec_scalar_sleef(1.06298484191448746607415e-05)), (vcast_vd_d_purec_scalar_sleef(-0.000125620649967286867384336)))), (vmla_vd_vd_vd_vd_purec_scalar_sleef((vd2getx_vd_vd2_purec_scalar_sleef(t)), (vcast_vd_d_purec_scalar_sleef(0.00070557664296393412389774)), (vcast_vd_d_purec_scalar_sleef(-0.00251865614498713360352999)))))), (vmla_vd_vd_vd_vd_purec_scalar_sleef((t2), (vmla_vd_vd_vd_vd_purec_scalar_sleef((vd2getx_vd_vd2_purec_scalar_sleef(t)), (vcast_vd_d_purec_scalar_sleef(0.00646262899036991172313504)), (vcast_vd_d_purec_scalar_sleef(-0.0128281333663399031014274)))), (vmla_vd_vd_vd_vd_purec_scalar_sleef((vd2getx_vd_vd2_purec_scalar_sleef(t)), (vcast_vd_d_purec_scalar_sleef(0.0208024799924145797902497)), (vcast_vd_d_purec_scalar_sleef(-0.0289002344784740315686289)))))))), (vmla_vd_vd_vd_vd_purec_scalar_sleef((t4), (vmla_vd_vd_vd_vd_purec_scalar_sleef((t2), (vmla_vd_vd_vd_vd_purec_scalar_sleef((vd2getx_vd_vd2_purec_scalar_sleef(t)), (vcast_vd_d_purec_scalar_sleef(0.0359785005035104590853656)), (vcast_vd_d_purec_scalar_sleef(-0.041848579703592507506027)))), (vmla_vd_vd_vd_vd_purec_scalar_sleef((vd2getx_vd_vd2_purec_scalar_sleef(t)), (vcast_vd_d_purec_scalar_sleef(0.0470843011653283988193763)), (vcast_vd_d_purec_scalar_sleef(-0.0524914210588448421068719)))))), (vmla_vd_vd_vd_vd_purec_scalar_sleef((t2), (vmla_vd_vd_vd_vd_purec_scalar_sleef((vd2getx_vd_vd2_purec_scalar_sleef(t)), (vcast_vd_d_purec_scalar_sleef(0.0587946590969581003860434)), (vcast_vd_d_purec_scalar_sleef(-0.0666620884778795497194182)))), (vmla_vd_vd_vd_vd_purec_scalar_sleef((vd2getx_vd_vd2_purec_scalar_sleef(t)), (vcast_vd_d_purec_scalar_sleef(0.0769225330296203768654095)), (vcast_vd_d_purec_scalar_sleef(-0.0909090442773387574781907)))))))));
 
   u = vmla_vd_vd_vd_vd_purec_scalar_sleef(u, vd2getx_vd_vd2_purec_scalar_sleef(t), vcast_vd_d_purec_scalar_sleef(0.111111108376896236538123));
@@ -3659,8 +3620,6 @@ SLEEF_INLINE SLEEF_CONST  vdouble_purec_scalar_sleef Sleef_log1pd1_u10purec(vdou
   return r;
 }
 
-static SLEEF_ALWAYS_INLINE SLEEF_CONST  vint2_purec_scalar_sleef vcast_vi2_i_i_purec_scalar_sleef(int i0, int i1) { return vcast_vi2_vm_purec_scalar_sleef(vcast_vm_i_i_purec_scalar_sleef(i0, i1)); }
-
 SLEEF_INLINE SLEEF_CONST  vdouble_purec_scalar_sleef Sleef_fabsd1_purec(vdouble_purec_scalar_sleef x) { return vabs_vd_vd_purec_scalar_sleef(x); }
 
 SLEEF_INLINE SLEEF_CONST  vdouble_purec_scalar_sleef Sleef_copysignd1_purec(vdouble_purec_scalar_sleef x, vdouble_purec_scalar_sleef y) { return vcopysign_vd_vd_vd_purec_scalar_sleef(x, y); }
@@ -3691,24 +3650,16 @@ SLEEF_INLINE SLEEF_CONST  vdouble_purec_scalar_sleef Sleef_rintd1_purec(vdouble_
 
 SLEEF_INLINE SLEEF_CONST  vdouble_purec_scalar_sleef Sleef_nextafterd1_purec(vdouble_purec_scalar_sleef x, vdouble_purec_scalar_sleef y) {
   x = vsel_vd_vo_vd_vd_purec_scalar_sleef(veq_vo_vd_vd_purec_scalar_sleef(x, vcast_vd_d_purec_scalar_sleef(0)), vmulsign_vd_vd_vd_purec_scalar_sleef(vcast_vd_d_purec_scalar_sleef(0), y), x);
-  vint2_purec_scalar_sleef t, xi2 = vreinterpret_vi2_vd_purec_scalar_sleef(x);
+  vmask_purec_scalar_sleef xi2 = vreinterpret_vm_vd_purec_scalar_sleef(x);
   vopmask_purec_scalar_sleef c = vxor_vo_vo_vo_purec_scalar_sleef(vsignbit_vo_vd_purec_scalar_sleef(x), vge_vo_vd_vd_purec_scalar_sleef(y, x));
 
-  t = vadd_vi2_vi2_vi2_purec_scalar_sleef(vxor_vi2_vi2_vi2_purec_scalar_sleef(xi2, vcast_vi2_i_i_purec_scalar_sleef(0x7fffffff, 0xffffffff)), vcast_vi2_i_i_purec_scalar_sleef(0, 1));
-  t = vadd_vi2_vi2_vi2_purec_scalar_sleef(t, vrev21_vi2_vi2_purec_scalar_sleef(vand_vi2_vi2_vi2_purec_scalar_sleef(vcast_vi2_i_i_purec_scalar_sleef(0, 1), veq_vi2_vi2_vi2_purec_scalar_sleef(t, vcast_vi2_i_i_purec_scalar_sleef(-1, 0)))));
-  xi2 = vreinterpret_vi2_vd_purec_scalar_sleef(vsel_vd_vo_vd_vd_purec_scalar_sleef(c, vreinterpret_vd_vi2_purec_scalar_sleef(t), vreinterpret_vd_vi2_purec_scalar_sleef(xi2)));
+  xi2 = vsel_vm_vo64_vm_vm_purec_scalar_sleef(c, vneg64_vm_vm_purec_scalar_sleef(vxor_vm_vm_vm_purec_scalar_sleef(xi2, vcast_vm_i_i_purec_scalar_sleef((int)(1U << 31), 0))), xi2);
 
-  xi2 = vsub_vi2_vi2_vi2_purec_scalar_sleef(xi2, vcast_vi2_vm_purec_scalar_sleef(vand_vm_vo64_vm_purec_scalar_sleef(vneq_vo_vd_vd_purec_scalar_sleef(x, y), vcast_vm_i64_purec_scalar_sleef(1))));
+  xi2 = vsel_vm_vo64_vm_vm_purec_scalar_sleef(vneq_vo_vd_vd_purec_scalar_sleef(x, y), vsub64_vm_vm_vm_purec_scalar_sleef(xi2, vcast_vm_i_i_purec_scalar_sleef(0, 1)), xi2);
 
-  xi2 = vreinterpret_vi2_vd_purec_scalar_sleef(vsel_vd_vo_vd_vd_purec_scalar_sleef(vneq_vo_vd_vd_purec_scalar_sleef(x, y),
-					     vreinterpret_vd_vi2_purec_scalar_sleef(vadd_vi2_vi2_vi2_purec_scalar_sleef(xi2, vrev21_vi2_vi2_purec_scalar_sleef(vand_vi2_vi2_vi2_purec_scalar_sleef(vcast_vi2_i_i_purec_scalar_sleef(0, -1), veq_vi2_vi2_vi2_purec_scalar_sleef(xi2, vcast_vi2_i_i_purec_scalar_sleef(0, -1)))))),
-					     vreinterpret_vd_vi2_purec_scalar_sleef(xi2)));
+  xi2 = vsel_vm_vo64_vm_vm_purec_scalar_sleef(c, vneg64_vm_vm_purec_scalar_sleef(vxor_vm_vm_vm_purec_scalar_sleef(xi2, vcast_vm_i_i_purec_scalar_sleef((int)(1U << 31), 0))), xi2);
 
-  t = vadd_vi2_vi2_vi2_purec_scalar_sleef(vxor_vi2_vi2_vi2_purec_scalar_sleef(xi2, vcast_vi2_i_i_purec_scalar_sleef(0x7fffffff, 0xffffffff)), vcast_vi2_i_i_purec_scalar_sleef(0, 1));
-  t = vadd_vi2_vi2_vi2_purec_scalar_sleef(t, vrev21_vi2_vi2_purec_scalar_sleef(vand_vi2_vi2_vi2_purec_scalar_sleef(vcast_vi2_i_i_purec_scalar_sleef(0, 1), veq_vi2_vi2_vi2_purec_scalar_sleef(t, vcast_vi2_i_i_purec_scalar_sleef(-1, 0)))));
-  xi2 = vreinterpret_vi2_vd_purec_scalar_sleef(vsel_vd_vo_vd_vd_purec_scalar_sleef(c, vreinterpret_vd_vi2_purec_scalar_sleef(t), vreinterpret_vd_vi2_purec_scalar_sleef(xi2)));
-
-  vdouble_purec_scalar_sleef ret = vreinterpret_vd_vi2_purec_scalar_sleef(xi2);
+  vdouble_purec_scalar_sleef ret = vreinterpret_vd_vm_purec_scalar_sleef(xi2);
 
   ret = vsel_vd_vo_vd_vd_purec_scalar_sleef(vand_vo_vo_vo_purec_scalar_sleef(veq_vo_vd_vd_purec_scalar_sleef(ret, vcast_vd_d_purec_scalar_sleef(0)), vneq_vo_vd_vd_purec_scalar_sleef(x, vcast_vd_d_purec_scalar_sleef(0))), 
 			 vmulsign_vd_vd_vd_purec_scalar_sleef(vcast_vd_d_purec_scalar_sleef(0), x), ret);
@@ -3738,7 +3689,7 @@ SLEEF_INLINE SLEEF_CONST  vdouble_purec_scalar_sleef Sleef_frfrexpd1_purec(vdoub
 SLEEF_INLINE SLEEF_CONST  vint_purec_scalar_sleef Sleef_expfrexpd1_purec(vdouble_purec_scalar_sleef x) {
   x = vsel_vd_vo_vd_vd_purec_scalar_sleef(vlt_vo_vd_vd_purec_scalar_sleef(vabs_vd_vd_purec_scalar_sleef(x), vcast_vd_d_purec_scalar_sleef(0x1p-1022)), vmul_vd_vd_vd_purec_scalar_sleef(x, vcast_vd_d_purec_scalar_sleef(UINT64_C(1) << 63)), x);
 
-  vint_purec_scalar_sleef ret = vcastu_vi_vi2_purec_scalar_sleef(vreinterpret_vi2_vd_purec_scalar_sleef(x));
+  vint_purec_scalar_sleef ret = vcastu_vi_vm_purec_scalar_sleef(vreinterpret_vm_vd_purec_scalar_sleef(x));
   ret = vsub_vi_vi_vi_purec_scalar_sleef(vand_vi_vi_vi_purec_scalar_sleef(vsrl_vi_vi_i_purec_scalar_sleef(ret, 20), vcast_vi_i_purec_scalar_sleef(0x7ff)), vcast_vi_i_purec_scalar_sleef(0x3fe));
 
   ret = vsel_vi_vo_vi_vi_purec_scalar_sleef(vor_vo_vo_vo_purec_scalar_sleef(vor_vo_vo_vo_purec_scalar_sleef(veq_vo_vd_vd_purec_scalar_sleef(x, vcast_vd_d_purec_scalar_sleef(0)), visnan_vo_vd_purec_scalar_sleef(x)), visinf_vo_vd_purec_scalar_sleef(x)), vcast_vi_i_purec_scalar_sleef(0), ret);
@@ -3796,7 +3747,7 @@ SLEEF_INLINE SLEEF_CONST  vdouble_purec_scalar_sleef Sleef_sqrtd1_u05purec(vdoub
   d = vsel_vd_vo_vd_vd_purec_scalar_sleef(o, vmul_vd_vd_vd_purec_scalar_sleef(d, vcast_vd_d_purec_scalar_sleef(7.4583407312002070e-155)), d);
   q = vsel_vd_vo_vd_vd_purec_scalar_sleef(o, vcast_vd_d_purec_scalar_sleef(1.1579208923731620e+77*0.5), q);
 
-  vdouble_purec_scalar_sleef x = vreinterpret_vd_vi2_purec_scalar_sleef(vsub_vi2_vi2_vi2_purec_scalar_sleef(vcast_vi2_i_i_purec_scalar_sleef(0x5fe6ec86, 0), vsrl_vi2_vi2_i_purec_scalar_sleef(vreinterpret_vi2_vd_purec_scalar_sleef(vadd_vd_vd_vd_purec_scalar_sleef(d, vcast_vd_d_purec_scalar_sleef(1e-320))), 1)));
+  vdouble_purec_scalar_sleef x = vreinterpret_vd_vm_purec_scalar_sleef(vsub64_vm_vm_vm_purec_scalar_sleef(vcast_vm_i_i_purec_scalar_sleef(0x5fe6ec86, 0), ((uint64_t)(vreinterpret_vm_vd_purec_scalar_sleef(vadd_vd_vd_vd_purec_scalar_sleef(d, vcast_vd_d_purec_scalar_sleef(1e-320)))) >> (1))));
 
   x = vmul_vd_vd_vd_purec_scalar_sleef(x, vsub_vd_vd_vd_purec_scalar_sleef(vcast_vd_d_purec_scalar_sleef(1.5), vmul_vd_vd_vd_purec_scalar_sleef(vmul_vd_vd_vd_purec_scalar_sleef(vmul_vd_vd_vd_purec_scalar_sleef(vcast_vd_d_purec_scalar_sleef(0.5), d), x), x)));
   x = vmul_vd_vd_vd_purec_scalar_sleef(x, vsub_vd_vd_vd_purec_scalar_sleef(vcast_vd_d_purec_scalar_sleef(1.5), vmul_vd_vd_vd_purec_scalar_sleef(vmul_vd_vd_vd_purec_scalar_sleef(vmul_vd_vd_vd_purec_scalar_sleef(vcast_vd_d_purec_scalar_sleef(0.5), d), x), x)));
@@ -3939,7 +3890,7 @@ SLEEF_INLINE SLEEF_CONST  vdouble_purec_scalar_sleef Sleef_remainderd1_purec(vdo
 
 static SLEEF_CONST dd2_purec_scalar_sleef gammak_purec_scalar_sleef(vdouble_purec_scalar_sleef a) {
   vdouble2_purec_scalar_sleef clc = vcast_vd2_d_d_purec_scalar_sleef(0, 0), clln = vcast_vd2_d_d_purec_scalar_sleef(1, 0), clld = vcast_vd2_d_d_purec_scalar_sleef(1, 0);
-  vdouble2_purec_scalar_sleef v = vcast_vd2_d_d_purec_scalar_sleef(1, 0), x, y, z;
+  vdouble2_purec_scalar_sleef x, y, z;
   vdouble_purec_scalar_sleef t, u;
 
   vopmask_purec_scalar_sleef otiny = vlt_vo_vd_vd_purec_scalar_sleef(vabs_vd_vd_purec_scalar_sleef(a), vcast_vd_d_purec_scalar_sleef(1e-306)), oref = vlt_vo_vd_vd_purec_scalar_sleef(a, vcast_vd_d_purec_scalar_sleef(0.5));
@@ -6560,7 +6511,7 @@ static vfloat2_purec_scalar_sleef df2getb_vf2_df2_purec_scalar_sleef(df2_purec_s
 
 static SLEEF_CONST df2_purec_scalar_sleef gammafk_purec_scalar_sleef(vfloat_purec_scalar_sleef a) {
   vfloat2_purec_scalar_sleef clc = vcast_vf2_f_f_purec_scalar_sleef(0, 0), clln = vcast_vf2_f_f_purec_scalar_sleef(1, 0), clld = vcast_vf2_f_f_purec_scalar_sleef(1, 0);
-  vfloat2_purec_scalar_sleef v = vcast_vf2_f_f_purec_scalar_sleef(1, 0), x, y, z;
+  vfloat2_purec_scalar_sleef x, y, z;
   vfloat_purec_scalar_sleef t, u;
 
   vopmask_purec_scalar_sleef otiny = vlt_vo_vf_vf_purec_scalar_sleef(vabs_vf_vf_purec_scalar_sleef(a), vcast_vf_f_purec_scalar_sleef(1e-30f)), oref = vlt_vo_vf_vf_purec_scalar_sleef(a, vcast_vf_f_purec_scalar_sleef(0.5));

@@ -20,6 +20,8 @@
 #pragma fp_contract (off)
 #endif
 
+#pragma STDC FP_CONTRACT OFF
+
 #ifndef SLEEF_FP_ILOGB0
 #define SLEEF_FP_ILOGB0 ((int)0x80000000)
 #endif
@@ -27,6 +29,8 @@
 #ifndef SLEEF_FP_ILOGBNAN
 #define SLEEF_FP_ILOGBNAN ((int)2147483647)
 #endif
+
+#define SLEEFINLINE_AVX_H_INCLUDED
 
 #ifndef __SLEEF_REMPITAB__
 #define __SLEEF_REMPITAB__
@@ -1164,17 +1168,6 @@ static SLEEF_ALWAYS_INLINE int vtestallones_i_vo64_avx_sleef(vopmask_avx_sleef g
 static SLEEF_ALWAYS_INLINE vdouble_avx_sleef vcast_vd_d_avx_sleef(double d) { return _mm256_set1_pd(d); }
 static SLEEF_ALWAYS_INLINE vmask_avx_sleef vreinterpret_vm_vd_avx_sleef(vdouble_avx_sleef vd_avx_sleef) { return _mm256_castpd_si256(vd_avx_sleef); }
 static SLEEF_ALWAYS_INLINE vdouble_avx_sleef vreinterpret_vd_vm_avx_sleef(vmask_avx_sleef vm) { return _mm256_castsi256_pd(vm);  }
-static SLEEF_ALWAYS_INLINE vint2_avx_sleef vreinterpret_vi2_vd_avx_sleef(vdouble_avx_sleef vd_avx_sleef) {
-  vint2_avx_sleef r;
-  r.x = _mm256_castsi256_si128(vreinterpret_vm_vd_avx_sleef(vd_avx_sleef));
-  r.y = _mm256_extractf128_si256(vreinterpret_vm_vd_avx_sleef(vd_avx_sleef), 1);
-  return r;
-}
-static SLEEF_ALWAYS_INLINE vdouble_avx_sleef vreinterpret_vd_vi2_avx_sleef(vint2_avx_sleef vi) {
-  vmask_avx_sleef m = _mm256_castsi128_si256(vi.x);
-  m = _mm256_insertf128_si256(m, vi.y, 1);
-  return vreinterpret_vd_vm_avx_sleef(m);
-}
 
 static vint2_avx_sleef vloadu_vi2_p_avx_sleef(int32_t *p) {
   vint2_avx_sleef r;
@@ -1229,16 +1222,15 @@ static SLEEF_ALWAYS_INLINE vfloat_avx_sleef vrint_vf_vf_avx_sleef(vfloat_avx_sle
 static SLEEF_ALWAYS_INLINE vfloat_avx_sleef vtruncate_vf_vf_avx_sleef(vfloat_avx_sleef vf) { return _mm256_round_ps(vf, _MM_FROUND_TO_ZERO |_MM_FROUND_NO_EXC); }
 static SLEEF_ALWAYS_INLINE vdouble_avx_sleef vcast_vd_vi_avx_sleef(vint_avx_sleef vi) { return _mm256_cvtepi32_pd(vi); }
 static SLEEF_ALWAYS_INLINE vint_avx_sleef vcast_vi_i_avx_sleef(int i) { return _mm_set1_epi32(i); }
-static SLEEF_ALWAYS_INLINE vint2_avx_sleef vcastu_vi2_vi_avx_sleef(vint_avx_sleef vi) {
-  vint2_avx_sleef r;
-  r.x = _mm_and_si128(_mm_shuffle_epi32(vi, 0x40), _mm_set_epi32(-1, 0, -1, 0));
-  r.y = _mm_and_si128(_mm_shuffle_epi32(vi, 0xc8), _mm_set_epi32(-1, 0, -1, 0));
-  return r;
+
+static SLEEF_ALWAYS_INLINE vmask_avx_sleef vcastu_vm_vi_avx_sleef(vint_avx_sleef vi) {
+  __m256i m = _mm256_castsi128_si256(_mm_and_si128(_mm_shuffle_epi32(vi, 0x40), _mm_set_epi32(-1, 0, -1, 0)));
+  return _mm256_insertf128_si256(m,  _mm_and_si128(_mm_shuffle_epi32(vi, 0xc8), _mm_set_epi32(-1, 0, -1, 0)), 1);
 }
 
-static SLEEF_ALWAYS_INLINE vint_avx_sleef vcastu_vi_vi2_avx_sleef(vint2_avx_sleef vi) {
-  return _mm_or_si128(_mm_and_si128(_mm_shuffle_epi32(vi.x, 0x0d), _mm_set_epi32( 0,  0, -1, -1)),
-		      _mm_and_si128(_mm_shuffle_epi32(vi.y, 0xd0), _mm_set_epi32(-1, -1,  0,  0)));
+static SLEEF_ALWAYS_INLINE vint_avx_sleef vcastu_vi_vm_avx_sleef(vmask_avx_sleef vi) {
+  return _mm_or_si128(_mm_and_si128(_mm_shuffle_epi32(_mm256_castsi256_si128(vi)     , 0x0d), _mm_set_epi32( 0,  0, -1, -1)),
+		      _mm_and_si128(_mm_shuffle_epi32(_mm256_extractf128_si256(vi, 1), 0xd0), _mm_set_epi32(-1, -1,  0,  0)));
 }
 
 static SLEEF_ALWAYS_INLINE vmask_avx_sleef vcast_vm_i_i_avx_sleef(int i0, int i1) {
@@ -1551,7 +1543,6 @@ static SLEEF_ALWAYS_INLINE void vsscatter2_v_p_i_i_vd_avx_sleef(double *ptr, int
 
 static SLEEF_ALWAYS_INLINE vfloat_avx_sleef vrev21_vf_vf_avx_sleef(vfloat_avx_sleef d0) { return _mm256_shuffle_ps(d0, d0, (2 << 6) | (3 << 4) | (0 << 2) | (1 << 0)); }
 static SLEEF_ALWAYS_INLINE vfloat_avx_sleef vreva2_vf_vf_avx_sleef(vfloat_avx_sleef d0) { d0 = _mm256_permute2f128_ps(d0, d0, 1); return _mm256_shuffle_ps(d0, d0, (1 << 6) | (0 << 4) | (3 << 2) | (2 << 0)); }
-static SLEEF_ALWAYS_INLINE vint2_avx_sleef vrev21_vi2_vi2_avx_sleef(vint2_avx_sleef i) { return vreinterpret_vi2_vf_avx_sleef(vrev21_vf_vf_avx_sleef(vreinterpret_vf_vi2_avx_sleef(i))); }
 
 static SLEEF_ALWAYS_INLINE void vstream_v_p_vf_avx_sleef(float *ptr, vfloat_avx_sleef v) { _mm256_stream_ps(ptr, v); }
 
@@ -1609,7 +1600,7 @@ static SLEEF_ALWAYS_INLINE vmask_avx_sleef vcast_vm_vi_avx_sleef(vint_avx_sleef 
   vint_avx_sleef vi0 = _mm_and_si128(_mm_shuffle_epi32(vi, (1 << 4) | (1 << 6)), _mm_set_epi32(0, -1, 0, -1));
   vint_avx_sleef vi1 = _mm_and_si128(_mm_shuffle_epi32(vi, (2 << 0) | (2 << 2) | (3 << 4) | (3 << 6)), _mm_set_epi32(0, -1, 0, -1));
   vmask_avx_sleef m = _mm256_insertf128_si256(_mm256_castsi128_si256(vi0), vi1, 1);
-  return vor_vm_vm_vm_avx_sleef(vcast_vm_vi2_avx_sleef(vcastu_vi2_vi_avx_sleef(vand_vi_vo_vi_avx_sleef(vgt_vo_vi_vi_avx_sleef(vcast_vi_i_avx_sleef(0), vi), vcast_vi_i_avx_sleef(-1)))), m);
+  return vor_vm_vm_vm_avx_sleef(vcastu_vm_vi_avx_sleef(vand_vi_vo_vi_avx_sleef(vgt_vo_vi_vi_avx_sleef(vcast_vi_i_avx_sleef(0), vi), vcast_vi_i_avx_sleef(-1))), m);
 }
 static SLEEF_ALWAYS_INLINE vint_avx_sleef vcast_vi_vm_avx_sleef(vmask_avx_sleef vm) {
   return _mm_or_si128(_mm_castps_si128(_mm_shuffle_ps(_mm_castsi128_ps(_mm256_castsi256_si128(vm)), _mm_set1_ps(0), 0x08)),
@@ -2072,7 +2063,7 @@ static SLEEF_ALWAYS_INLINE SLEEF_CONST  vopmask_avx_sleef visodd_vo_vd_avx_sleef
 static SLEEF_ALWAYS_INLINE SLEEF_CONST  vint_avx_sleef vilogbk_vi_vd_avx_sleef(vdouble_avx_sleef d) {
   vopmask_avx_sleef o = vlt_vo_vd_vd_avx_sleef(d, vcast_vd_d_avx_sleef(4.9090934652977266E-91));
   d = vsel_vd_vo_vd_vd_avx_sleef(o, vmul_vd_vd_vd_avx_sleef(vcast_vd_d_avx_sleef(2.037035976334486E90), d), d);
-  vint_avx_sleef q = vcastu_vi_vi2_avx_sleef(vreinterpret_vi2_vd_avx_sleef(d));
+  vint_avx_sleef q = vcastu_vi_vm_avx_sleef(vreinterpret_vm_vd_avx_sleef(d));
   q = vand_vi_vi_vi_avx_sleef(q, vcast_vi_i_avx_sleef((int)(((1U << 12) - 1) << 20)));
   q = vsrl_vi_vi_i_avx_sleef(q, 20);
   q = vsub_vi_vi_vi_avx_sleef(q, vsel_vi_vo_vi_vi_avx_sleef(vcast_vo32_vo64_avx_sleef(o), vcast_vi_i_avx_sleef(300 + 0x3ff), vcast_vi_i_avx_sleef(0x3ff)));
@@ -2080,7 +2071,7 @@ static SLEEF_ALWAYS_INLINE SLEEF_CONST  vint_avx_sleef vilogbk_vi_vd_avx_sleef(v
 }
 
 static SLEEF_ALWAYS_INLINE SLEEF_CONST  vint_avx_sleef vilogb2k_vi_vd_avx_sleef(vdouble_avx_sleef d) {
-  vint_avx_sleef q = vcastu_vi_vi2_avx_sleef(vreinterpret_vi2_vd_avx_sleef(d));
+  vint_avx_sleef q = vcastu_vi_vm_avx_sleef(vreinterpret_vm_vd_avx_sleef(d));
   q = vsrl_vi_vi_i_avx_sleef(q, 20);
   q = vand_vi_vi_vi_avx_sleef(q, vcast_vi_i_avx_sleef(0x7ff));
   q = vsub_vi_vi_vi_avx_sleef(q, vcast_vi_i_avx_sleef(0x3ff));
@@ -2104,8 +2095,8 @@ static SLEEF_ALWAYS_INLINE SLEEF_CONST vmask_avx_sleef vilogb3k_vm_vd_avx_sleef(
 
 static SLEEF_ALWAYS_INLINE SLEEF_CONST  vdouble_avx_sleef vpow2i_vd_vi_avx_sleef(vint_avx_sleef q) {
   q = vadd_vi_vi_vi_avx_sleef(vcast_vi_i_avx_sleef(0x3ff), q);
-  vint2_avx_sleef r = vcastu_vi2_vi_avx_sleef(q);
-  return vreinterpret_vd_vi2_avx_sleef(vsll_vi2_vi2_i_avx_sleef(r, 20));
+  vmask_avx_sleef r = vcastu_vm_vi_avx_sleef(vsll_vi_vi_i_avx_sleef(q, 20));
+  return vreinterpret_vd_vm_avx_sleef(r);
 }
 
 static SLEEF_ALWAYS_INLINE SLEEF_CONST  vdouble_avx_sleef vpow2i_vd_vm_avx_sleef(vmask_avx_sleef q) {
@@ -2120,8 +2111,8 @@ static SLEEF_ALWAYS_INLINE SLEEF_CONST  vdouble_avx_sleef vldexp_vd_vd_vi_avx_sl
   m = vadd_vi_vi_vi_avx_sleef(vcast_vi_i_avx_sleef(0x3ff), m);
   m = vandnot_vi_vo_vi_avx_sleef(vgt_vo_vi_vi_avx_sleef(vcast_vi_i_avx_sleef(0), m), m);
   m = vsel_vi_vo_vi_vi_avx_sleef(vgt_vo_vi_vi_avx_sleef(m, vcast_vi_i_avx_sleef(0x7ff)), vcast_vi_i_avx_sleef(0x7ff), m);
-  vint2_avx_sleef r = vcastu_vi2_vi_avx_sleef(m);
-  vdouble_avx_sleef y = vreinterpret_vd_vi2_avx_sleef(vsll_vi2_vi2_i_avx_sleef(r, 20));
+  vmask_avx_sleef r = vcastu_vm_vi_avx_sleef(vsll_vi_vi_i_avx_sleef(m, 20));
+  vdouble_avx_sleef y = vreinterpret_vd_vm_avx_sleef(r);
   return vmul_vd_vd_vd_avx_sleef(vmul_vd_vd_vd_avx_sleef(vmul_vd_vd_vd_avx_sleef(vmul_vd_vd_vd_avx_sleef(vmul_vd_vd_vd_avx_sleef(x, y), y), y), y), vpow2i_vd_vi_avx_sleef(q));
 }
 
@@ -2130,7 +2121,7 @@ static SLEEF_ALWAYS_INLINE SLEEF_CONST  vdouble_avx_sleef vldexp2_vd_vd_vi_avx_s
 }
 
 static SLEEF_ALWAYS_INLINE SLEEF_CONST  vdouble_avx_sleef vldexp3_vd_vd_vi_avx_sleef(vdouble_avx_sleef d, vint_avx_sleef q) {
-  return vreinterpret_vd_vi2_avx_sleef(vadd_vi2_vi2_vi2_avx_sleef(vreinterpret_vi2_vd_avx_sleef(d), vsll_vi2_vi2_i_avx_sleef(vcastu_vi2_vi_avx_sleef(q), 20)));
+  return vreinterpret_vd_vm_avx_sleef(vadd64_vm_vm_vm_avx_sleef(vreinterpret_vm_vd_avx_sleef(d), vcastu_vm_vi_avx_sleef(vsll_vi_vi_i_avx_sleef(q, 20))));
 }
 
 static SLEEF_ALWAYS_INLINE SLEEF_CONST vdouble_avx_sleef vldexp1_vd_vd_vm_avx_sleef(vdouble_avx_sleef d, vmask_avx_sleef e) {
@@ -2997,7 +2988,7 @@ static SLEEF_ALWAYS_INLINE SLEEF_CONST  vdouble2_avx_sleef atan2k_u1_avx_sleef(v
   t = ddsqu_vd2_vd2_avx_sleef(s);
   t = ddnormalize_vd2_vd2_avx_sleef(t);
 
-  vdouble_avx_sleef t2 = vmul_vd_vd_vd_avx_sleef(vd2getx_vd_vd2_avx_sleef(t), vd2getx_vd_vd2_avx_sleef(t)), t4 = vmul_vd_vd_vd_avx_sleef(t2, t2), t8 = vmul_vd_vd_vd_avx_sleef(t4, t4), t16 = vmul_vd_vd_vd_avx_sleef(t8, t8);
+  vdouble_avx_sleef t2 = vmul_vd_vd_vd_avx_sleef(vd2getx_vd_vd2_avx_sleef(t), vd2getx_vd_vd2_avx_sleef(t)), t4 = vmul_vd_vd_vd_avx_sleef(t2, t2), t8 = vmul_vd_vd_vd_avx_sleef(t4, t4);
   u = vmla_vd_vd_vd_vd_avx_sleef((t8), (vmla_vd_vd_vd_vd_avx_sleef((t4), (vmla_vd_vd_vd_vd_avx_sleef((t2), (vmla_vd_vd_vd_vd_avx_sleef((vd2getx_vd_vd2_avx_sleef(t)), (vcast_vd_d_avx_sleef(1.06298484191448746607415e-05)), (vcast_vd_d_avx_sleef(-0.000125620649967286867384336)))), (vmla_vd_vd_vd_vd_avx_sleef((vd2getx_vd_vd2_avx_sleef(t)), (vcast_vd_d_avx_sleef(0.00070557664296393412389774)), (vcast_vd_d_avx_sleef(-0.00251865614498713360352999)))))), (vmla_vd_vd_vd_vd_avx_sleef((t2), (vmla_vd_vd_vd_vd_avx_sleef((vd2getx_vd_vd2_avx_sleef(t)), (vcast_vd_d_avx_sleef(0.00646262899036991172313504)), (vcast_vd_d_avx_sleef(-0.0128281333663399031014274)))), (vmla_vd_vd_vd_vd_avx_sleef((vd2getx_vd_vd2_avx_sleef(t)), (vcast_vd_d_avx_sleef(0.0208024799924145797902497)), (vcast_vd_d_avx_sleef(-0.0289002344784740315686289)))))))), (vmla_vd_vd_vd_vd_avx_sleef((t4), (vmla_vd_vd_vd_vd_avx_sleef((t2), (vmla_vd_vd_vd_vd_avx_sleef((vd2getx_vd_vd2_avx_sleef(t)), (vcast_vd_d_avx_sleef(0.0359785005035104590853656)), (vcast_vd_d_avx_sleef(-0.041848579703592507506027)))), (vmla_vd_vd_vd_vd_avx_sleef((vd2getx_vd_vd2_avx_sleef(t)), (vcast_vd_d_avx_sleef(0.0470843011653283988193763)), (vcast_vd_d_avx_sleef(-0.0524914210588448421068719)))))), (vmla_vd_vd_vd_vd_avx_sleef((t2), (vmla_vd_vd_vd_vd_avx_sleef((vd2getx_vd_vd2_avx_sleef(t)), (vcast_vd_d_avx_sleef(0.0587946590969581003860434)), (vcast_vd_d_avx_sleef(-0.0666620884778795497194182)))), (vmla_vd_vd_vd_vd_avx_sleef((vd2getx_vd_vd2_avx_sleef(t)), (vcast_vd_d_avx_sleef(0.0769225330296203768654095)), (vcast_vd_d_avx_sleef(-0.0909090442773387574781907)))))))));
 
   u = vmla_vd_vd_vd_vd_avx_sleef(u, vd2getx_vd_vd2_avx_sleef(t), vcast_vd_d_avx_sleef(0.111111108376896236538123));
@@ -3816,8 +3807,6 @@ SLEEF_INLINE SLEEF_CONST  vdouble_avx_sleef Sleef_log1pd4_u10avx(vdouble_avx_sle
   return r;
 }
 
-static SLEEF_ALWAYS_INLINE SLEEF_CONST  vint2_avx_sleef vcast_vi2_i_i_avx_sleef(int i0, int i1) { return vcast_vi2_vm_avx_sleef(vcast_vm_i_i_avx_sleef(i0, i1)); }
-
 SLEEF_INLINE SLEEF_CONST  vdouble_avx_sleef Sleef_fabsd4_avx(vdouble_avx_sleef x) { return vabs_vd_vd_avx_sleef(x); }
 
 SLEEF_INLINE SLEEF_CONST  vdouble_avx_sleef Sleef_copysignd4_avx(vdouble_avx_sleef x, vdouble_avx_sleef y) { return vcopysign_vd_vd_vd_avx_sleef(x, y); }
@@ -3848,24 +3837,16 @@ SLEEF_INLINE SLEEF_CONST  vdouble_avx_sleef Sleef_rintd4_avx(vdouble_avx_sleef x
 
 SLEEF_INLINE SLEEF_CONST  vdouble_avx_sleef Sleef_nextafterd4_avx(vdouble_avx_sleef x, vdouble_avx_sleef y) {
   x = vsel_vd_vo_vd_vd_avx_sleef(veq_vo_vd_vd_avx_sleef(x, vcast_vd_d_avx_sleef(0)), vmulsign_vd_vd_vd_avx_sleef(vcast_vd_d_avx_sleef(0), y), x);
-  vint2_avx_sleef t, xi2 = vreinterpret_vi2_vd_avx_sleef(x);
+  vmask_avx_sleef xi2 = vreinterpret_vm_vd_avx_sleef(x);
   vopmask_avx_sleef c = vxor_vo_vo_vo_avx_sleef(vsignbit_vo_vd_avx_sleef(x), vge_vo_vd_vd_avx_sleef(y, x));
 
-  t = vadd_vi2_vi2_vi2_avx_sleef(vxor_vi2_vi2_vi2_avx_sleef(xi2, vcast_vi2_i_i_avx_sleef(0x7fffffff, 0xffffffff)), vcast_vi2_i_i_avx_sleef(0, 1));
-  t = vadd_vi2_vi2_vi2_avx_sleef(t, vrev21_vi2_vi2_avx_sleef(vand_vi2_vi2_vi2_avx_sleef(vcast_vi2_i_i_avx_sleef(0, 1), veq_vi2_vi2_vi2_avx_sleef(t, vcast_vi2_i_i_avx_sleef(-1, 0)))));
-  xi2 = vreinterpret_vi2_vd_avx_sleef(vsel_vd_vo_vd_vd_avx_sleef(c, vreinterpret_vd_vi2_avx_sleef(t), vreinterpret_vd_vi2_avx_sleef(xi2)));
+  xi2 = vsel_vm_vo64_vm_vm_avx_sleef(c, vneg64_vm_vm_avx_sleef(vxor_vm_vm_vm_avx_sleef(xi2, vcast_vm_i_i_avx_sleef((int)(1U << 31), 0))), xi2);
 
-  xi2 = vsub_vi2_vi2_vi2_avx_sleef(xi2, vcast_vi2_vm_avx_sleef(vand_vm_vo64_vm_avx_sleef(vneq_vo_vd_vd_avx_sleef(x, y), vcast_vm_i64_avx_sleef(1))));
+  xi2 = vsel_vm_vo64_vm_vm_avx_sleef(vneq_vo_vd_vd_avx_sleef(x, y), vsub64_vm_vm_vm_avx_sleef(xi2, vcast_vm_i_i_avx_sleef(0, 1)), xi2);
 
-  xi2 = vreinterpret_vi2_vd_avx_sleef(vsel_vd_vo_vd_vd_avx_sleef(vneq_vo_vd_vd_avx_sleef(x, y),
-					     vreinterpret_vd_vi2_avx_sleef(vadd_vi2_vi2_vi2_avx_sleef(xi2, vrev21_vi2_vi2_avx_sleef(vand_vi2_vi2_vi2_avx_sleef(vcast_vi2_i_i_avx_sleef(0, -1), veq_vi2_vi2_vi2_avx_sleef(xi2, vcast_vi2_i_i_avx_sleef(0, -1)))))),
-					     vreinterpret_vd_vi2_avx_sleef(xi2)));
+  xi2 = vsel_vm_vo64_vm_vm_avx_sleef(c, vneg64_vm_vm_avx_sleef(vxor_vm_vm_vm_avx_sleef(xi2, vcast_vm_i_i_avx_sleef((int)(1U << 31), 0))), xi2);
 
-  t = vadd_vi2_vi2_vi2_avx_sleef(vxor_vi2_vi2_vi2_avx_sleef(xi2, vcast_vi2_i_i_avx_sleef(0x7fffffff, 0xffffffff)), vcast_vi2_i_i_avx_sleef(0, 1));
-  t = vadd_vi2_vi2_vi2_avx_sleef(t, vrev21_vi2_vi2_avx_sleef(vand_vi2_vi2_vi2_avx_sleef(vcast_vi2_i_i_avx_sleef(0, 1), veq_vi2_vi2_vi2_avx_sleef(t, vcast_vi2_i_i_avx_sleef(-1, 0)))));
-  xi2 = vreinterpret_vi2_vd_avx_sleef(vsel_vd_vo_vd_vd_avx_sleef(c, vreinterpret_vd_vi2_avx_sleef(t), vreinterpret_vd_vi2_avx_sleef(xi2)));
-
-  vdouble_avx_sleef ret = vreinterpret_vd_vi2_avx_sleef(xi2);
+  vdouble_avx_sleef ret = vreinterpret_vd_vm_avx_sleef(xi2);
 
   ret = vsel_vd_vo_vd_vd_avx_sleef(vand_vo_vo_vo_avx_sleef(veq_vo_vd_vd_avx_sleef(ret, vcast_vd_d_avx_sleef(0)), vneq_vo_vd_vd_avx_sleef(x, vcast_vd_d_avx_sleef(0))), 
 			 vmulsign_vd_vd_vd_avx_sleef(vcast_vd_d_avx_sleef(0), x), ret);
@@ -3895,7 +3876,7 @@ SLEEF_INLINE SLEEF_CONST  vdouble_avx_sleef Sleef_frfrexpd4_avx(vdouble_avx_slee
 SLEEF_INLINE SLEEF_CONST  vint_avx_sleef Sleef_expfrexpd4_avx(vdouble_avx_sleef x) {
   x = vsel_vd_vo_vd_vd_avx_sleef(vlt_vo_vd_vd_avx_sleef(vabs_vd_vd_avx_sleef(x), vcast_vd_d_avx_sleef(0x1p-1022)), vmul_vd_vd_vd_avx_sleef(x, vcast_vd_d_avx_sleef(UINT64_C(1) << 63)), x);
 
-  vint_avx_sleef ret = vcastu_vi_vi2_avx_sleef(vreinterpret_vi2_vd_avx_sleef(x));
+  vint_avx_sleef ret = vcastu_vi_vm_avx_sleef(vreinterpret_vm_vd_avx_sleef(x));
   ret = vsub_vi_vi_vi_avx_sleef(vand_vi_vi_vi_avx_sleef(vsrl_vi_vi_i_avx_sleef(ret, 20), vcast_vi_i_avx_sleef(0x7ff)), vcast_vi_i_avx_sleef(0x3fe));
 
   ret = vsel_vi_vo_vi_vi_avx_sleef(vor_vo_vo_vo_avx_sleef(vor_vo_vo_vo_avx_sleef(veq_vo_vd_vd_avx_sleef(x, vcast_vd_d_avx_sleef(0)), visnan_vo_vd_avx_sleef(x)), visinf_vo_vd_avx_sleef(x)), vcast_vi_i_avx_sleef(0), ret);
@@ -3953,7 +3934,7 @@ SLEEF_INLINE SLEEF_CONST  vdouble_avx_sleef Sleef_sqrtd4_u05avx(vdouble_avx_slee
   d = vsel_vd_vo_vd_vd_avx_sleef(o, vmul_vd_vd_vd_avx_sleef(d, vcast_vd_d_avx_sleef(7.4583407312002070e-155)), d);
   q = vsel_vd_vo_vd_vd_avx_sleef(o, vcast_vd_d_avx_sleef(1.1579208923731620e+77*0.5), q);
 
-  vdouble_avx_sleef x = vreinterpret_vd_vi2_avx_sleef(vsub_vi2_vi2_vi2_avx_sleef(vcast_vi2_i_i_avx_sleef(0x5fe6ec86, 0), vsrl_vi2_vi2_i_avx_sleef(vreinterpret_vi2_vd_avx_sleef(vadd_vd_vd_vd_avx_sleef(d, vcast_vd_d_avx_sleef(1e-320))), 1)));
+  vdouble_avx_sleef x = vreinterpret_vd_vm_avx_sleef(vsub64_vm_vm_vm_avx_sleef(vcast_vm_i_i_avx_sleef(0x5fe6ec86, 0), _mm256_insertf128_si256(_mm256_castsi128_si256(_mm_srli_epi64(_mm256_extractf128_si256(vreinterpret_vm_vd_avx_sleef(vadd_vd_vd_vd_avx_sleef(d, vcast_vd_d_avx_sleef(1e-320))), 0), 1)), _mm_srli_epi64(_mm256_extractf128_si256(vreinterpret_vm_vd_avx_sleef(vadd_vd_vd_vd_avx_sleef(d, vcast_vd_d_avx_sleef(1e-320))), 1), 1), 1)));
 
   x = vmul_vd_vd_vd_avx_sleef(x, vsub_vd_vd_vd_avx_sleef(vcast_vd_d_avx_sleef(1.5), vmul_vd_vd_vd_avx_sleef(vmul_vd_vd_vd_avx_sleef(vmul_vd_vd_vd_avx_sleef(vcast_vd_d_avx_sleef(0.5), d), x), x)));
   x = vmul_vd_vd_vd_avx_sleef(x, vsub_vd_vd_vd_avx_sleef(vcast_vd_d_avx_sleef(1.5), vmul_vd_vd_vd_avx_sleef(vmul_vd_vd_vd_avx_sleef(vmul_vd_vd_vd_avx_sleef(vcast_vd_d_avx_sleef(0.5), d), x), x)));
@@ -4096,7 +4077,7 @@ SLEEF_INLINE SLEEF_CONST  vdouble_avx_sleef Sleef_remainderd4_avx(vdouble_avx_sl
 
 static SLEEF_CONST dd2_avx_sleef gammak_avx_sleef(vdouble_avx_sleef a) {
   vdouble2_avx_sleef clc = vcast_vd2_d_d_avx_sleef(0, 0), clln = vcast_vd2_d_d_avx_sleef(1, 0), clld = vcast_vd2_d_d_avx_sleef(1, 0);
-  vdouble2_avx_sleef v = vcast_vd2_d_d_avx_sleef(1, 0), x, y, z;
+  vdouble2_avx_sleef x, y, z;
   vdouble_avx_sleef t, u;
 
   vopmask_avx_sleef otiny = vlt_vo_vd_vd_avx_sleef(vabs_vd_vd_avx_sleef(a), vcast_vd_d_avx_sleef(1e-306)), oref = vlt_vo_vd_vd_avx_sleef(a, vcast_vd_d_avx_sleef(0.5));
@@ -6717,7 +6698,7 @@ static vfloat2_avx_sleef df2getb_vf2_df2_avx_sleef(df2_avx_sleef d) { return d.b
 
 static SLEEF_CONST df2_avx_sleef gammafk_avx_sleef(vfloat_avx_sleef a) {
   vfloat2_avx_sleef clc = vcast_vf2_f_f_avx_sleef(0, 0), clln = vcast_vf2_f_f_avx_sleef(1, 0), clld = vcast_vf2_f_f_avx_sleef(1, 0);
-  vfloat2_avx_sleef v = vcast_vf2_f_f_avx_sleef(1, 0), x, y, z;
+  vfloat2_avx_sleef x, y, z;
   vfloat_avx_sleef t, u;
 
   vopmask_avx_sleef otiny = vlt_vo_vf_vf_avx_sleef(vabs_vf_vf_avx_sleef(a), vcast_vf_f_avx_sleef(1e-30f)), oref = vlt_vo_vf_vf_avx_sleef(a, vcast_vf_f_avx_sleef(0.5));
